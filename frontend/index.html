@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AIRA</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    #chat { height: 70vh; overflow-y: auto; }
+    .bubble { padding: .6rem .9rem; border-radius: 1rem; margin: .4rem 0; max-width: 85%; white-space: pre-wrap; }
+    .user { background: #0d6efd; color: #fff; margin-left: auto; }
+    .bot { background: #e9ecef; }
+  </style>
+</head>
+<body class="container py-3">
+  <h4>AIRA: AI Course Tutor</h4>
+  <div id="chat" class="border rounded p-3 mb-2"></div>
+  <div class="input-group">
+    <input id="msg" class="form-control" placeholder="Ask about BCS515B...">
+    <button id="send" class="btn btn-primary">Send</button>
+  </div>
+
+  <script>
+    // A random ID so the backend can remember THIS chat
+    const sessionId = crypto.randomUUID();
+    const chat = document.getElementById("chat");
+    const input = document.getElementById("msg");
+
+    // Adds a message bubble to the screen
+    function add(text, cls) {
+      const d = document.createElement("div");
+      d.className = "bubble " + cls;
+      d.textContent = text;
+      chat.appendChild(d);
+      chat.scrollTop = chat.scrollHeight;
+      return d;
+    }
+
+    // Sends your question to the backend and shows the reply
+    async function send() {
+      const text = input.value.trim();
+      if (!text) return;
+      add(text, "user");
+      input.value = "";
+      const typing = add("AIRA is typing...", "bot");
+      try {
+        const res = await fetch("/api/chat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ session_id: sessionId, message: text })
+        });
+        const data = await res.json();
+        typing.textContent = data.reply;
+      } catch (e) {
+        typing.textContent = "Network error. Please try again.";
+      }
+    }
+
+    document.getElementById("send").onclick = send;
+    input.addEventListener("keydown", e => { if (e.key === "Enter") send(); });
+    add("Hi! I'm AIRA, your BCS515B tutor. Ask me about agents, search, or Module 1 and 2 topics.", "bot");
+  </script>
+</body>
+</html>
