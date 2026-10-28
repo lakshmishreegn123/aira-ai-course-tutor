@@ -73,7 +73,18 @@ def log_message(session_id, role, content, latency_ms=None, tokens_used=None):
     )
     conn.commit()
     conn.close()
-
+def get_history(session_id):
+    conn = get_connection()
+    rows = conn.execute(
+        "SELECT id, role, content, timestamp FROM messages "
+        "WHERE session_id = ? ORDER BY id",
+        (session_id,),
+    ).fetchall()
+    conn.close()
+    return [
+        {"id": r[0], "role": r[1], "content": r[2], "timestamp": r[3]}
+        for r in rows
+    ]
 
 if __name__ == "__main__":
     init_db()
