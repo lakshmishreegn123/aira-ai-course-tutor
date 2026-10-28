@@ -50,7 +50,7 @@
           body: JSON.stringify({ session_id: sessionId, message: text })
         });
         const data = await res.json();
-        typing.textContent = data.reply;
+        typing.textContent = data.reply || "Something went wrong. Please try again.";
       } catch (e) {
         typing.textContent = "Network error. Please try again.";
       }
